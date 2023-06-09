@@ -8,7 +8,7 @@ homepage = "https://github.com/pangu-studio/bollard"
 repository = "https://github.com/pangu-studio/bollard"
 documentation = "https://docs.rs/pangu-studio"
 readme = "README.md"
-keywords = ["docker", "pangu", "pangu-studio","pangu studio"]
+keywords = ["docker", "pangu", "pangu-studio","pangu_studio"]
 edition = "2021"
 
 [lib]
