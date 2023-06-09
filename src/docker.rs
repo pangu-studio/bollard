@@ -17,7 +17,7 @@ use futures_core::Stream;
 use futures_util::future::FutureExt;
 use futures_util::future::TryFutureExt;
 use futures_util::stream::TryStreamExt;
-use http::header::CONTENT_TYPE;
+use http::header::{AUTHORIZATION, CONTENT_TYPE};
 use http::request::Builder;
 use hyper::client::{Client, HttpConnector};
 use hyper::{self, body::Bytes, Body, Method, Request, Response, StatusCode};
@@ -261,6 +261,7 @@ pub struct Docker {
     pub(crate) client_addr: String,
     pub(crate) client_timeout: u64,
     pub(crate) version: Arc<(AtomicUsize, AtomicUsize)>,
+    pub(crate) secret: Option<String>,
 }
 
 impl Clone for Docker {
@@ -271,6 +272,7 @@ impl Clone for Docker {
             client_addr: self.client_addr.clone(),
             client_timeout: self.client_timeout,
             version: self.version.clone(),
+            secret: self.secret.clone(),
         }
     }
 }
@@ -545,7 +547,7 @@ impl Docker {
     /// ```
     pub fn connect_with_http_defaults() -> Result<Docker, Error> {
         let host = env::var("DOCKER_HOST").unwrap_or_else(|_| DEFAULT_DOCKER_HOST.to_string());
-        Docker::connect_with_http(&host, DEFAULT_TIMEOUT, API_DEFAULT_VERSION)
+        Docker::connect_with_http(&host, DEFAULT_TIMEOUT, API_DEFAULT_VERSION, None)
     }
 
     /// Connect using unsecured HTTP.
@@ -573,6 +575,7 @@ impl Docker {
         addr: &str,
         timeout: u64,
         client_version: &ClientVersion,
+        secret: Option<String>,
     ) -> Result<Docker, Error> {
         // This ensures that using docker-machine-esque addresses work with Hyper.
         let client_addr = addr.replacen("tcp://", "", 1).replacen("http://", "", 1);
@@ -591,6 +594,7 @@ impl Docker {
                 AtomicUsize::new(client_version.major_version),
                 AtomicUsize::new(client_version.minor_version),
             )),
+            secret,
         };
 
         Ok(docker)
@@ -648,7 +652,7 @@ impl Docker {
         client_version: &ClientVersion,
     ) -> Result<Docker, Error> {
         #[cfg(unix)]
-        let docker = Docker::connect_with_unix(path, timeout, client_version);
+        let docker = Docker::connect_with_unix(path, timeout, client_version, None);
         #[cfg(windows)]
         let docker = Docker::connect_with_named_pipe(path, timeout, client_version);
 
@@ -688,7 +692,7 @@ impl Docker {
         });
         let path = socket_path.as_deref();
         let path_ref: &str = path.unwrap_or(DEFAULT_SOCKET);
-        Docker::connect_with_unix(path_ref, DEFAULT_TIMEOUT, API_DEFAULT_VERSION)
+        Docker::connect_with_unix(path_ref, DEFAULT_TIMEOUT, API_DEFAULT_VERSION, None)
     }
 
     /// Connect using a Unix socket.
@@ -713,6 +717,7 @@ impl Docker {
         path: &str,
         timeout: u64,
         client_version: &ClientVersion,
+        secret: Option<String>,
     ) -> Result<Docker, Error> {
         let client_addr = path.replacen("unix://", "", 1);
 
@@ -732,6 +737,7 @@ impl Docker {
                 AtomicUsize::new(client_version.major_version),
                 AtomicUsize::new(client_version.minor_version),
             )),
+            secret,
         };
 
         Ok(docker)
@@ -846,7 +852,7 @@ impl Docker {
         client_version: &ClientVersion,
     ) -> Result<Docker, Error> {
         #[cfg(unix)]
-        return Docker::connect_with_unix(addr, timeout, client_version);
+        return Docker::connect_with_unix(addr, timeout, client_version, None);
         #[cfg(windows)]
         return Docker::connect_with_named_pipe(addr, timeout, client_version);
     }
@@ -887,6 +893,7 @@ impl Docker {
         client_addr: String,
         timeout: u64,
         client_version: &ClientVersion,
+        secret: Option<String>,
     ) -> Result<Docker, Error> {
         let client_builder = Client::builder();
         let client = client_builder.build(connector);
@@ -902,6 +909,7 @@ impl Docker {
                 AtomicUsize::new(client_version.major_version),
                 AtomicUsize::new(client_version.minor_version),
             )),
+            secret,
         };
 
         Ok(docker)
@@ -1148,10 +1156,18 @@ impl Docker {
         )?;
         let request_uri: hyper::Uri = uri.into();
         debug!("{}", &request_uri);
-        Ok(builder
+
+        let mut builder = builder
             .uri(request_uri)
-            .header(CONTENT_TYPE, "application/json")
-            .body(payload?)?)
+            .header(CONTENT_TYPE, "application/json");
+
+        if self.secret.is_some() {
+            let v: String = format!("Bearer {}", self.secret.as_ref().unwrap());
+
+            builder = builder.header(AUTHORIZATION, v);
+        }
+
+        Ok(builder.body(payload?)?)
     }
 
     async fn execute_request(
