@@ -1,15 +1,19 @@
 [package]
-name = "bollard"
+name = "pangu-bollard"
 description = "An asynchronous Docker daemon API"
 version = "0.14.0"
 authors = [ "Bollard contributors" ]
 license = "Apache-2.0"
-homepage = "https://github.com/fussybeaver/bollard"
-repository = "https://github.com/fussybeaver/bollard"
-documentation = "https://docs.rs/bollard"
+homepage = "https://github.com/pangu-studio/bollard"
+repository = "https://github.com/pangu-studio/bollard"
+documentation = "https://docs.rs/pangu-studio"
 readme = "README.md"
-keywords = ["docker"]
+keywords = ["docker", "pangu", "pangu-studio","pangu studio"]
 edition = "2021"
+
+[lib]
+name = "pangu_bollard"
+path = "src/lib.rs"
 
 [workspace]
 members = [
