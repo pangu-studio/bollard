@@ -1179,10 +1179,10 @@ impl Docker {
     where
         T: Into<String> + Eq + Hash + Serialize,
     {
-        let url = "/containers/json";
+        let url = format!("/v{}.{}/containers/json", self.client_version().major_version, self.client_version().minor_version);
 
         let req = self.build_request(
-            url,
+            &url,
             Builder::new().method(Method::GET),
             options,
             Ok(Body::empty()),
@@ -1237,9 +1237,9 @@ impl Docker {
         T: Into<String> + Serialize,
         Z: Into<String> + Hash + Eq + Serialize,
     {
-        let url = "/containers/create";
+        let url = format!("/v{}.{}/containers/create", self.client_version().major_version, self.client_version().minor_version);        
         let req = self.build_request(
-            url,
+            &url,
             Builder::new().method(Method::POST),
             options,
             Docker::serialize_payload(Some(config)),
@@ -1281,7 +1281,7 @@ impl Docker {
     where
         T: Into<String> + Serialize,
     {
-        let url = format!("/containers/{}/start", container_name);
+        let url = format!("/v{}.{}//containers/{}/start", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1326,7 +1326,7 @@ impl Docker {
         container_name: &str,
         options: Option<StopContainerOptions>,
     ) -> Result<(), Error> {
-        let url = format!("/containers/{}/stop", container_name);
+        let url = format!("/v{}.{}/containers/{}/stop", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1375,7 +1375,7 @@ impl Docker {
         container_name: &str,
         options: Option<RemoveContainerOptions>,
     ) -> Result<(), Error> {
-        let url = format!("/containers/{}", container_name);
+        let url = format!("/v{}.{}/containers/{}", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1426,7 +1426,7 @@ impl Docker {
     where
         T: Into<String> + Serialize,
     {
-        let url = format!("/containers/{}/wait", container_name);
+        let url = format!("/v{}.{}/containers/{}/wait", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1497,7 +1497,7 @@ impl Docker {
     where
         T: Into<String> + Serialize + Default,
     {
-        let url = format!("/containers/{}/attach", container_name);
+        let url = format!("/v{}.{}/containers/{}/attach", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1549,7 +1549,7 @@ impl Docker {
         container_name: &str,
         options: ResizeContainerTtyOptions,
     ) -> Result<(), Error> {
-        let url = format!("/containers/{}/resize", container_name);
+        let url = format!("/v{}.{}/containers/{}/resize", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1595,7 +1595,7 @@ impl Docker {
         container_name: &str,
         options: Option<RestartContainerOptions>,
     ) -> Result<(), Error> {
-        let url = format!("/containers/{}/restart", container_name);
+        let url = format!("/v{}.{}/containers/{}/restart", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1640,7 +1640,7 @@ impl Docker {
         container_name: &str,
         options: Option<InspectContainerOptions>,
     ) -> Result<ContainerInspectResponse, Error> {
-        let url = format!("/containers/{}/json", container_name);
+        let url = format!("/v{}.{}/containers/{}/json", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1688,7 +1688,7 @@ impl Docker {
     where
         T: Into<String> + Serialize,
     {
-        let url = format!("/containers/{}/top", container_name);
+        let url = format!("/v{}.{}/containers/{}/top", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1741,7 +1741,7 @@ impl Docker {
     where
         T: Into<String> + Serialize,
     {
-        let url = format!("/containers/{}/logs", container_name);
+        let url = format!("/v{}.{}/containers/{}/logs", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1780,7 +1780,7 @@ impl Docker {
         &self,
         container_name: &str,
     ) -> Result<Option<Vec<ContainerChangeResponseItem>>, Error> {
-        let url = format!("/containers/{}/changes", container_name);
+        let url = format!("/v{}.{}/containers/{}/changes", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1828,7 +1828,7 @@ impl Docker {
         container_name: &str,
         options: Option<StatsOptions>,
     ) -> impl Stream<Item = Result<Stats, Error>> {
-        let url = format!("/containers/{}/stats", container_name);
+        let url = format!("/v{}.{}/containers/{}/stats", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1877,7 +1877,7 @@ impl Docker {
     where
         T: Into<String> + Serialize,
     {
-        let url = format!("/containers/{}/kill", container_name);
+        let url = format!("/v{}.{}/containers/{}/kill", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1929,7 +1929,7 @@ impl Docker {
     where
         T: Into<String> + Eq + Hash + Serialize,
     {
-        let url = format!("/containers/{}/update", container_name);
+        let url = format!("/v{}.{}/containers/{}/update", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -1978,7 +1978,7 @@ impl Docker {
     where
         T: Into<String> + Serialize,
     {
-        let url = format!("/containers/{}/rename", container_name);
+        let url = format!("/v{}.{}/containers/{}/rename", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -2013,7 +2013,7 @@ impl Docker {
     /// docker.pause_container("postgres");
     /// ```
     pub async fn pause_container(&self, container_name: &str) -> Result<(), Error> {
-        let url = format!("/containers/{}/pause", container_name);
+        let url = format!("/v{}.{}/containers/{}/pause", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -2048,7 +2048,7 @@ impl Docker {
     /// docker.unpause_container("postgres");
     /// ```
     pub async fn unpause_container(&self, container_name: &str) -> Result<(), Error> {
-        let url = format!("/containers/{}/unpause", container_name);
+        let url = format!("/v{}.{}/containers/{}/unpause", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -2099,10 +2099,10 @@ impl Docker {
     where
         T: Into<String> + Eq + Hash + Serialize,
     {
-        let url = "/containers/prune";
+        let url = format!("/v{}.{}/containers/prune", self.client_version().major_version, self.client_version().minor_version);
 
         let req = self.build_request(
-            url,
+            &url,
             Builder::new().method(Method::POST),
             options,
             Ok(Body::empty()),
@@ -2156,7 +2156,7 @@ impl Docker {
     where
         T: Into<String> + Serialize,
     {
-        let url = format!("/containers/{}/archive", container_name);
+        let url = format!("/v{}.{}/containers/{}/archive", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
@@ -2206,7 +2206,7 @@ impl Docker {
     where
         T: Into<String> + Serialize,
     {
-        let url = format!("/containers/{}/archive", container_name);
+        let url = format!("/v{}.{}/containers/{}/archive", self.client_version().major_version, self.client_version().minor_version, container_name);
 
         let req = self.build_request(
             &url,
